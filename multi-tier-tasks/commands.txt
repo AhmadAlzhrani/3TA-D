@@ -1,0 +1,36 @@
+docker network create test-net
+
+docker run -d \
+	--name db \
+	-e POSTGRES_DB=testDB \
+	-e POSTGRES_USER=test \
+	-e POSTGRES_PASSWORD=test123 \
+	-p 5432:5432 \
+	--network test-net
+	-v postgres-vol:/var/lib/postgresql/data \
+	postgres:alpine
+
+docker volume volume postgres-vol
+
+psql -h localhost -U test -d testDB -p 5432
+
+docker build -t go:myimage .
+
+docker run -d \
+	--name backend \ 
+	--network test-net \
+	--env-file .env \
+	-p 8080:8080
+	go:myimage
+
+docker build -t nginx:myimage .
+
+docker run -d \
+	--name frontend \ 
+	--network test-net \
+	-p 80:80 \
+	nginx:myimage
+
+curl -X POST http://localhost:8080/rows \
+ -H "Content-Type: application/json" \
+ -d '{"name": "Abdul", "value": "test"}'

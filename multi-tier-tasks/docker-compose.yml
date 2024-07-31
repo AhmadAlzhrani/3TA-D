@@ -1,0 +1,41 @@
+services:
+
+  backend:
+    container_name: backend
+    networks: 
+      - go-net
+    image: backend
+    ports:
+      - "8080:8080"
+    env_file: 
+      - backend/.env
+    depends_on:
+      - db
+
+  frontend:
+    container_name: frontend
+    networks: 
+      - go-net
+    image: frontend
+    ports:
+      - 80:80
+    depends_on:
+      - db
+
+  db:
+    container_name: pg
+    networks: 
+      - go-net
+    image: postgres:15.7-alpine3.20
+    env_file: 
+      - backend/.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-vol:/var/lib/postgresql/data
+
+volumes:
+  db-vol: {}
+
+networks:
+  go-net: {}
